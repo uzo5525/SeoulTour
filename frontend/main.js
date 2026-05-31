@@ -15,15 +15,13 @@ async function fetchPlaces() {
   return data;
 }
 
-// 점수 기준 색상 결정
 function getMarkerColor(score) {
-  if (score >= 80) return '#1a7a1a';      // 진한 초록
-  if (score >= 60) return '#4caf50';      // 연한 초록
-  if (score >= 40) return '#ffc107';      // 노란색
-  return '#8d6e63';                        // 갈색
+  if (score >= 80) return '#1a7a1a';
+  if (score >= 60) return '#4caf50';
+  if (score >= 40) return '#ffc107';
+  return '#8d6e63';
 }
 
-// 커스텀 마커 SVG 생성
 function createMarkerImage(score) {
   const color = getMarkerColor(score);
   const svg = `
@@ -40,7 +38,6 @@ function renderMarkers(places, alpha) {
   markers.forEach(m => m.setMap(null));
   markers = [];
 
-  // 점수 계산 후 내림차순 정렬, 상위 25개만
   const scored = places
     .map(place => ({ ...place, score: calcScore(place, alpha) }))
     .sort((a, b) => b.score - a.score)
@@ -95,7 +92,6 @@ function renderPlaceList(places, alpha) {
   const list = document.getElementById("places-list");
   list.innerHTML = "";
 
-  // 점수 계산 후 내림차순 정렬, 상위 25개만
   const scored = places
     .map(place => ({ ...place, score: calcScore(place, alpha) }))
     .sort((a, b) => b.score - a.score)
@@ -104,7 +100,6 @@ function renderPlaceList(places, alpha) {
   scored.forEach((place, index) => {
     const item = document.createElement("div");
     item.className = "place-item";
-
     item.innerHTML = `
       <div class="place-name">${index + 1}. ${place.name}</div>
       <div class="bar-container">
@@ -112,9 +107,15 @@ function renderPlaceList(places, alpha) {
       </div>
       <div class="score-text-graph">${place.score}</div>
     `;
-
     list.appendChild(item);
   });
+}
+
+function calcScore(spot, alpha) {
+  const a = spot.attractiveness;
+  const p = spot.popularity;
+  let score = alpha * a + (1 - alpha) * p + alpha * (1 - alpha) * (a - p);
+  return Number(score.toFixed(2));
 }
 
 const slider = document.getElementById("alphaSlider");
@@ -137,10 +138,3 @@ window.addEventListener("DOMContentLoaded", async () => {
   renderMarkers(places, alpha);
   renderPlaceList(places, alpha);
 });
-
-function calcScore(spot, alpha) {
-  const a = spot.attractiveness;
-  const p = spot.popularity;
-  let score = alpha * a + (1 - alpha) * p + alpha * (1 - alpha) * (a - p);
-  return Number(score.toFixed(2));
-}
