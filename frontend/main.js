@@ -144,7 +144,6 @@ slider.addEventListener("change", async () => {
 });
 
 window.addEventListener("DOMContentLoaded", async () => {
-  initMap();
   const alpha = parseFloat(slider.value);
   const places = await fetchPlaces();
   renderMarkers(places, alpha);
