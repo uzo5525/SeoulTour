@@ -35,6 +35,37 @@ function initMap() {
       level: 5
     };
     map = new kakao.maps.Map(mapContainer, mapOption);
+
+    // 사용자 현재 위치 표시
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const userPosition = new kakao.maps.LatLng(lat, lng);
+
+          map.setCenter(userPosition);
+
+          const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+              <circle cx="10" cy="10" r="8" fill="#4285F4" stroke="white" stroke-width="2"/>
+            </svg>
+          `;
+          const encoded = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+          const userImage = new kakao.maps.MarkerImage(encoded, new kakao.maps.Size(20, 20));
+
+          new kakao.maps.Marker({
+            map: map,
+            position: userPosition,
+            image: userImage
+          });
+        },
+        () => {
+          console.log('위치 정보를 가져올 수 없습니다.');
+        }
+      );
+    }
+
   } catch(e) {
     console.log('카카오맵 초기화 실패:', e);
   }
