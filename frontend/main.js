@@ -1,14 +1,18 @@
-// 지도 설정 파트
-let mapContainer = document.getElementById("map");
-let mapOption = {
-  center: new kakao.maps.LatLng(37.5665, 126.9780),
-  level: 5
-};
-
-let map = new kakao.maps.Map(mapContainer, mapOption);
+let map = null;
 let markers = [];
 let openedInfoWindow = null;
 
+// 카카오맵 초기화 (실패해도 나머지 동작)
+try {
+  let mapContainer = document.getElementById("map");
+  let mapOption = {
+    center: new kakao.maps.LatLng(37.5665, 126.9780),
+    level: 5
+  };
+  map = new kakao.maps.Map(mapContainer, mapOption);
+} catch(e) {
+  console.log('카카오맵 로드 실패:', e);
+}
 async function fetchPlaces() {
   const res = await fetch('https://seoultour-production.up.railway.app/spots');
   const data = await res.json();
