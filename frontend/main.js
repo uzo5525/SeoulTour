@@ -10,7 +10,7 @@ let markers = [];
 let openedInfoWindow = null;
 
 async function fetchPlaces() {
-  const res = await fetch('http://localhost:3000/spots');
+  const res = await fetch('https://seoultour-production.up.railway.app/spots');
   const data = await res.json();
   return data;
 }
