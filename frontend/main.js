@@ -2,18 +2,6 @@ let map = null;
 let markers = [];
 let openedInfoWindow = null;
 
-// 카카오맵 초기화
-if (typeof kakao !== 'undefined') {
-  let mapContainer = document.getElementById("map");
-  let mapOption = {
-    center: new kakao.maps.LatLng(37.5665, 126.9780),
-    level: 5
-  };
-  map = new kakao.maps.Map(mapContainer, mapOption);
-} else {
-  console.log('카카오맵 로드 실패');
-}
-
 async function fetchPlaces() {
   const res = await fetch('https://seoultour-production.up.railway.app/spots');
   const data = await res.json();
@@ -39,7 +27,21 @@ function createMarkerImage(score) {
   return new kakao.maps.MarkerImage(encoded, new kakao.maps.Size(30, 40));
 }
 
+function initMap() {
+  try {
+    let mapContainer = document.getElementById("map");
+    let mapOption = {
+      center: new kakao.maps.LatLng(37.5665, 126.9780),
+      level: 5
+    };
+    map = new kakao.maps.Map(mapContainer, mapOption);
+  } catch(e) {
+    console.log('카카오맵 초기화 실패:', e);
+  }
+}
+
 function renderMarkers(places, alpha) {
+  if (!map) return;  // 지도 없으면 스킵
   markers.forEach(m => m.setMap(null));
   markers = [];
 
@@ -49,47 +51,51 @@ function renderMarkers(places, alpha) {
     .slice(0, 25);
 
   scored.forEach(place => {
-    const position = new kakao.maps.LatLng(place.lat, place.lng);
-    const markerImage = createMarkerImage(place.score);
+    try {
+      const position = new kakao.maps.LatLng(place.lat, place.lng);
+      const markerImage = createMarkerImage(place.score);
 
-    const marker = new kakao.maps.Marker({
-      map: map,
-      position: position,
-      image: markerImage
-    });
+      const marker = new kakao.maps.Marker({
+        map: map,
+        position: position,
+        image: markerImage
+      });
 
-    const info = new kakao.maps.InfoWindow({
-      content: `
-        <div class="info-card">
-          <div class="info-title">${place.name}</div>
-          <div class="info-details">
-            <span class="label">카테고리:</span> ${place.category}<br>
-            <span class="label">실내/외:</span> ${place.indoor ? "실내" : "실외"}<br>
-          </div>
-          <div class="info-score">
-            <div class="score-text">지수: <b>${place.score}</b></div>
-            <div class="score-bar">
-              <div class="score-fill" style="width: ${place.score}%; background: ${getMarkerColor(place.score)};"></div>
+      const info = new kakao.maps.InfoWindow({
+        content: `
+          <div class="info-card">
+            <div class="info-title">${place.name}</div>
+            <div class="info-details">
+              <span class="label">카테고리:</span> ${place.category}<br>
+              <span class="label">실내/외:</span> ${place.indoor ? "실내" : "실외"}<br>
+            </div>
+            <div class="info-score">
+              <div class="score-text">지수: <b>${place.score}</b></div>
+              <div class="score-bar">
+                <div class="score-fill" style="width: ${place.score}%; background: ${getMarkerColor(place.score)};"></div>
+              </div>
             </div>
           </div>
-        </div>
-      `
-    });
+        `
+      });
 
-    kakao.maps.event.addListener(marker, "click", () => {
-      if (openedInfoWindow === info) {
-        info.close();
-        openedInfoWindow = null;
-        return;
-      }
-      if (openedInfoWindow) {
-        openedInfoWindow.close();
-      }
-      info.open(map, marker);
-      openedInfoWindow = info;
-    });
+      kakao.maps.event.addListener(marker, "click", () => {
+        if (openedInfoWindow === info) {
+          info.close();
+          openedInfoWindow = null;
+          return;
+        }
+        if (openedInfoWindow) {
+          openedInfoWindow.close();
+        }
+        info.open(map, marker);
+        openedInfoWindow = info;
+      });
 
-    markers.push(marker);
+      markers.push(marker);
+    } catch(e) {
+      console.log('마커 생성 실패:', e);
+    }
   });
 }
 
@@ -138,6 +144,7 @@ slider.addEventListener("change", async () => {
 });
 
 window.addEventListener("DOMContentLoaded", async () => {
+  initMap();
   const alpha = parseFloat(slider.value);
   const places = await fetchPlaces();
   renderMarkers(places, alpha);
