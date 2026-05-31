@@ -25,7 +25,13 @@
     </div>
 
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=c06bc38f2d89404755040b350d8bab6e&autoload=false"></script>
-  <script src="main.js"></script>
+  <script>
+    kakao.maps.load(function() {
+      var script = document.createElement('script');
+      script.src = 'main.js';
+      document.head.appendChild(script);
+    });
+  </script>
 
 </body>
 </html>
